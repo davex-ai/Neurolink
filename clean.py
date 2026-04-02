@@ -33,13 +33,16 @@ train_df = train_df[train_df["label"] != -1]
 # 3                        To make her feel threatened   [14]  ed7ypvh     14
 # 4                             Dirty Southern Wankers    [3]  ed0bdzj      3
 train_df["clean_text"] = train_df["text"].apply(preprocess)
-selected_labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-train_df = train_df[train_df["label"].isin(selected_labels)]
+# selected_labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+label_map = {
+    0: "neutral",
+    1: "sadness",
+    2: "anger",
+    3: "annoyance",
+    4: "approval",
+    5: "caring",
+    7: "joy"
+}
+train_df = train_df[train_df["label"].isin(label_map)]
 # print(train_df.head())
-#                                               text  ...                                         clean_text
-# 0  My favourite food is anything I didn't have to...  ...  my favourite food is anything i didn t have to...
-# 1  Now if he does off himself, everyone will thin...  ...  now if he does off himself  everyone will thin...
-# 2                     WHY THE FUCK IS BAYLESS ISOING  ...                     why the fuck is bayless isoing
-# 3                        To make her feel threatened  ...                        to make her feel threatened
-# 4                             Dirty Southern Wankers  ...                             dirty southern wankers
 # print(train_df.describe())
