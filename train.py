@@ -5,7 +5,7 @@ from sklearn.metrics import accuracy_score, classification_report, mean_squared_
 from sklearn.model_selection import train_test_split
 from clean import train_df, preprocess, label_map
 
-vectorizer = TfidfVectorizer(max_features=10000, ngram_range=(1,2), stop_words='english', max_df=0.8, min_df=5)
+vectorizer = TfidfVectorizer(max_features=15000, ngram_range=(1,2), stop_words='english', max_df=0.85, min_df=3)
 
 x = vectorizer.fit_transform(train_df["clean_text"])
 y = train_df["label"]
@@ -24,8 +24,8 @@ def predict_emotion(text):
     text = preprocess(text)
     vector = vectorizer.transform([text])
     probs = model.predict_proba(vector)[0]
-    prediction = probs.argmax()
-    confidence = probs.max()
+    prediction = model.classes_[probs.argmax()]
+    confidence = probs[probs.argmax()]
     if confidence < 0.5:
         return "uncertain" , confidence
     return label_map[int(prediction)], confidence

@@ -6,6 +6,7 @@ from datasets import load_dataset
 def preprocess(text):
     text = text.lower()
     text = re.sub(r"[^a-zA-Z\s]", " ", text)
+    text = re.sub(r"\s+", " ", text).strip()
     return text
 
 
@@ -36,7 +37,6 @@ train_df["clean_text"] = train_df["text"].apply(preprocess)
 # selected_labels = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 label_map = {
     0: "neutral",
-    1: "sadness",
     2: "anger",
     3: "annoyance",
     4: "approval",
