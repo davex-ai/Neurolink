@@ -1,8 +1,9 @@
 from fastapi import FastAPI, APIRouter
 import joblib
+from starlette.middleware.cors import CORSMiddleware
 
 from clean import preprocess, label_map
-from responses import generate_responses
+from responses import generate_responses, rule_based_override
 
 # Load model
 model = joblib.load("model.pkl")
@@ -10,6 +11,13 @@ vectorizer = joblib.load("vectorizer.pkl")
 
 app = FastAPI()
 neurolink = APIRouter(prefix="/neurolink")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @neurolink.get("/")
 def home():
@@ -22,29 +30,31 @@ def predict(data: dict):
     if not text:
         return {"error": "No text provided"}
 
-    # Preprocess
     cleaned = preprocess(text)
     vector = vectorizer.transform([cleaned])
 
-    probs = model.predict_proba(vector)[0]
-    idx = probs.argmax()
+    override = rule_based_override(text)
 
-    prediction = model.classes_[idx]
-    confidence = float(probs[idx])
-
-    emotion = label_map[prediction]
-    if confidence < 0.5:
-        emotion = "uncertain"
+    if override:
+        emotion = override
+        confidence = 0.9
     else:
-        response = generate_responses(emotion)
-        return {
-            "emotion": emotion,
-            "confidence": confidence,
-            "response": response
-        }
+        probs = model.predict_proba(vector)[0]
+        idx = probs.argmax()
+
+        prediction = model.classes_[idx]
+        confidence = float(probs[idx])
+
+        if confidence < 0.5:
+            emotion = "uncertain"
+        else:
+            emotion = label_map[prediction]
+
+    response = generate_responses(emotion)
 
     return {
-        "emotion": label_map[prediction],
-        "confidence": confidence
+        "emotion": emotion,
+        "confidence": confidence,
+        "response": response
     }
 app.include_router(neurolink)

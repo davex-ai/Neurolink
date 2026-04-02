@@ -116,9 +116,26 @@ response_map = {
     "neutral": [
         "Got it. Tell me more.",
         "I'm listening.",
+    ],
+    "uncertain": [
+    "I'm not fully sure I understand how you're feeling. Can you tell me more?",
+    "That’s a bit hard to read. Want to explain a little more?",
     ]
 }
 def generate_responses(emotion):
     if emotion in response_map:
         return random.choice(response_map[emotion])
     return "Tell me more"
+
+def rule_based_override(text):
+    text = text.lower()
+    if "amazing" in text or "great" in text or "awesome" in text:
+        return "joy"
+
+    if "hate" in text or "angry" in text:
+        return "anger"
+
+    if "sad" in text or "tired" in text:
+        return "sadness"
+
+    return None
