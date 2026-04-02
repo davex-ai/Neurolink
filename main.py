@@ -18,7 +18,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+conversation_memory = []
+emotion_memory = []
 @neurolink.get("/")
 def home():
     return {"message": "NeuroLink API is running 🧠"}
@@ -26,6 +27,10 @@ def home():
 @neurolink.post("/predict")
 def predict(data: dict):
     text = data.get("text", "")
+    conversation_memory.append(text)
+    context = " ".join(conversation_memory[-5:])
+    cleaned = preprocess(context)
+    embedding = vectorizer.encode([cleaned])
 
     if not text:
         return {"error": "No text provided"}
@@ -51,6 +56,9 @@ def predict(data: dict):
             emotion = label_map[prediction]
 
     response = generate_responses(emotion)
+    emotion_memory.append(emotion)
+    if emotion == "uncertain" and emotion_memory:
+        emotion = emotion_memory[-1]
 
     return {
         "emotion": emotion,
