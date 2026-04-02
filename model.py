@@ -1,22 +1,39 @@
 import joblib
-from sklearn.linear_model import LogisticRegression
-from sklearn.model_selection import train_test_split
 from sentence_transformers import SentenceTransformer
-from clean import train_df
+from utilities import preprocess
+from responses import rule_based_override
 
-print("Encoding text into embeddings...")
+label_map = {
+    0: "neutral",
+    2: "anger",
+    3: "annoyance",
+    4: "approval",
+    5: "caring",
+    7: "joy"
+}
+
+model = joblib.load("classifier.pkl")
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-X = embedder.encode(train_df["text"].tolist(), show_progress_bar=True)
-y = train_df["label"]
 
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42, stratify=y
-)
+def predict_emotion(text):
+    text = preprocess(text)
 
-model = LogisticRegression(max_iter=1000, class_weight="balanced")
-model.fit(X_train, y_train)
-joblib.dump(model, "model.pkl")
-joblib.dump(embedder, "vectorizer.pkl")
+    # Rule first
+    override = rule_based_override(text)
 
-print("Model + Vectorizer saved ✅")
+    vector = embedder.encode([text])
+    probs = model.predict_proba(vector)[0]
+
+    idx = probs.argmax()
+    confidence = float(probs[idx])
+    prediction = model.classes_[idx]
+
+    # Hybrid logic
+    if override and confidence < 0.6:
+        return override, 0.85
+
+    if confidence < 0.45:
+        return "uncertain", confidence
+
+    return label_map[prediction], confidence

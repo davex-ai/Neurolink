@@ -53,11 +53,6 @@
     <p><strong>You:</strong> ${text}</p>
 `;
 
-setTimeout(() => {
-    document.getElementById("output").innerHTML += `
-        <p><strong>NeuroLink:</strong> ${data.response}</p>
-    `;
-}, 500);
         function startVoice() {
     const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     recognition.lang = "en-US";
@@ -70,29 +65,36 @@ setTimeout(() => {
 
     recognition.start();
 }
-        async function sendText() {
-            const text = document.getElementById("inputText").value;
+       async function sendText() {
+    const text = document.getElementById("inputText").value;
 
-            const res = await fetch("http://127.0.0.1:8000/neurolink/predict", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ text })
-            });
+    document.getElementById("output").innerHTML += `
+        <p><strong>You:</strong> ${text}</p>
+    `;
 
-            const data = await res.json();
+    const res = await fetch("http://127.0.0.1:8000/predict", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ text })
+    });
 
-            document.getElementById("output").innerHTML += `
-    <p><strong>You:</strong> ${text}</p>
-    <p><strong>NeuroLink:</strong> ${data.response}</p>
-`;
-// document.getElementById("output").innerHTML = `
+    const data = await res.json();
+
+    setTimeout(() => {
+        document.getElementById("output").innerHTML += `
+            <p><strong>NeuroLink:</strong> ${data.response}</p>
+        `;
+    }, 400);
+}
+// `;
+// // document.getElementById("output").innerHTML = `
 //                 <p><strong>Emotion:</strong> ${data.emotion}</p>
 //                 <p><strong>Confidence:</strong> ${data.confidence}</p>
 //                 <p><strong>Response:</strong> ${data.response}</p>
 //             `;
-        }
+        
     </script>
 
 </body>
