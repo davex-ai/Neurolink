@@ -17,20 +17,16 @@ def rule_based_override(text):
 print("Encoding text into embeddings...")
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-# We apply the embeddings to the whole cleaned dataset
 X = embedder.encode(train_df["text"].tolist(), show_progress_bar=True)
 y = train_df["label"]
 
-# 2. Split
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42, stratify=y
 )
 
-# 3. Train - Logistic Regression is great with embeddings
 model = LogisticRegression(max_iter=1000, class_weight="balanced")
 model.fit(X_train, y_train)
 
-# 4. Evaluate
 y_pred = model.predict(X_test)
 print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
 print(f"Report: {classification_report(y_test, y_pred)}")

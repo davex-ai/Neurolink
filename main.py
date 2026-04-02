@@ -1,6 +1,5 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-
 from model import predict_emotion
 from utilities import update_memory
 from responses import generate_responses
