@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 
 from model import predict_emotion
@@ -19,8 +19,9 @@ app.add_middleware(
 def home():
     return {"message": "NeuroLink API running 🧠"}
 
+neurolink = APIRouter(prefix="/neurolink")
 
-@app.post("/predict")
+@neurolink.post("/predict")
 def predict(data: dict):
     text = data.get("text", "")
 
@@ -38,3 +39,4 @@ def predict(data: dict):
         "confidence": confidence,
         "response": response
     }
+app.include_router(neurolink)
