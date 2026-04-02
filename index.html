@@ -27,7 +27,7 @@
             color: black;
             cursor: pointer;
         }
-
+        
         .response-box {
             margin-top: 30px;
             padding: 20px;
@@ -40,13 +40,36 @@
 
     <h1>🧠 NeuroLink</h1>
     <p>Talk to your emotion-aware system</p>
-
+    
     <input id="inputText" placeholder="Type how you feel..." />
     <button onclick="sendText()">Send</button>
+    <button onclick="startVoice()">🎤 Speak</button>
 
     <div class="response-box" id="output"></div>
 
     <script>
+
+        document.getElementById("output").innerHTML += `
+    <p><strong>You:</strong> ${text}</p>
+`;
+
+setTimeout(() => {
+    document.getElementById("output").innerHTML += `
+        <p><strong>NeuroLink:</strong> ${data.response}</p>
+    `;
+}, 500);
+        function startVoice() {
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = "en-US";
+
+    recognition.onresult = function(event) {
+        const text = event.results[0][0].transcript;
+        document.getElementById("inputText").value = text;
+        sendText();
+    };
+
+    recognition.start();
+}
         async function sendText() {
             const text = document.getElementById("inputText").value;
 
