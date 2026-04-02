@@ -122,25 +122,36 @@ response_map = {
     "That’s a bit hard to read. Want to explain a little more?",
     ]
 }
+
+scores = {
+        "joy": 0,
+        "anger": 0,
+        "sadness": 0,
+        "confusion": 0,
+        "annoyance": 0,
+        "approval": 0,
+        "neutral": 0
+ }
+
+rules = {
+    "joy": ["amazing", "great", "awesome", "fantastic", "happy"],
+    "anger": ["hate", "angry", "furious"],
+    "sadness": ["sad", "tired", "down"],
+    "confusion": ["confused", "lost"],
+    "annoyance": ["ugh", "annoying", "irritating"],
+    "approval": ["fine", "okay", "works"],
+    "neutral": ["hungry", "eating", "food"]
+}
+
 def generate_responses(emotion):
     if emotion in response_map:
         return random.choice(response_map[emotion])
     return "Tell me more"
 
-def rule_based_override(text):
-    text = text.lower()
 
-    rules = {
-        "joy": ["amazing", "great", "awesome", "fantastic", "happy"],
-        "anger": ["hate", "angry", "furious"],
-        "sadness": ["sad", "tired", "down"],
-        "confusion": ["confused", "lost"],
-        "annoyance": ["ugh", "annoying"],
-        "approval": ["fine", "okay", "works"]
-    }
-
+def rule_signal(text):
     for emotion, words in rules.items():
         if any(w in text for w in words):
-            return emotion
+            scores[emotion] += 2
 
-    return None
+    return scores

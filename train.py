@@ -3,7 +3,16 @@ from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
 from sentence_transformers import SentenceTransformer
 from clean import train_df, preprocess, label_map
-from responses import rule_based_override
+from responses import rules
+
+
+def rule_based_override(text):
+    text = text.lower()
+    for emotion, words in rules.items():
+        if any(w in text for w in words):
+            return emotion
+    return None
+
 
 print("Encoding text into embeddings...")
 embedder = SentenceTransformer("all-MiniLM-L6-v2")
