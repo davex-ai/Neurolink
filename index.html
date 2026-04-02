@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NeuroLink 🧠</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: #0f172a;
+            color: white;
+            text-align: center;
+            padding: 50px;
+        }
+
+        input {
+            width: 60%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            padding: 12px 20px;
+            margin-left: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #22c55e;
+            color: black;
+            cursor: pointer;
+        }
+
+        .response-box {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e293b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🧠 NeuroLink</h1>
+    <p>Talk to your emotion-aware system</p>
+
+    <input id="inputText" placeholder="Type how you feel..." />
+    <button onclick="sendText()">Send</button>
+
+    <div class="response-box" id="output"></div>
+
+    <script>
+        async function sendText() {
+            const text = document.getElementById("inputText").value;
+
+            const res = await fetch("http://127.0.0.1:8000/neurolink/predict", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ text })
+            });
+
+            const data = await res.json();
+
+            document.getElementById("output").innerHTML += `
+    <p><strong>You:</strong> ${text}</p>
+    <p><strong>NeuroLink:</strong> ${data.response}</p>
+`;
+// document.getElementById("output").innerHTML = `
+//                 <p><strong>Emotion:</strong> ${data.emotion}</p>
+//                 <p><strong>Confidence:</strong> ${data.confidence}</p>
+//                 <p><strong>Response:</strong> ${data.response}</p>
+//             `;
+        }
+    </script>
+
+</body>
+</html>
