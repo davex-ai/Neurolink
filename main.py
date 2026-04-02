@@ -31,21 +31,21 @@ def predict(data: dict):
         return {"error": "No text provided"}
 
     cleaned = preprocess(text)
-    vector = vectorizer.transform([cleaned])
+    embedding = vectorizer.encode([cleaned])
 
     override = rule_based_override(text)
 
-    if override:
+    if override and confidence < 0.6: # Unresolved reference 'confidence'
         emotion = override
         confidence = 0.9
     else:
-        probs = model.predict_proba(vector)[0]
+        probs = model.predict_proba(embedding)[0]
         idx = probs.argmax()
 
         prediction = model.classes_[idx]
         confidence = float(probs[idx])
 
-        if confidence < 0.5:
+        if confidence < 0.45:
             emotion = "uncertain"
         else:
             emotion = label_map[prediction]

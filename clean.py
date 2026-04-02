@@ -7,20 +7,13 @@ def preprocess(text):
     text = text.lower()
     text = re.sub(r"[^a-zA-Z\s]", " ", text)
     text = re.sub(r"\s+", " ", text).strip()
+    text = re.sub(r"(.)\1{2,}", r"\1\1", text)
     return text
 
 
 
 dataset = load_dataset("go_emotions", "simplified")
 train_df = pd.DataFrame(dataset["train"])
-
-# print(train_df.head())
-#                                                 text labels       id
-# 0  My favourite food is anything I didn't have to...   [27]  eebbqej
-# 1  Now if he does off himself, everyone will thin...   [27]  ed00q6i
-# 2                     WHY THE FUCK IS BAYLESS ISOING    [2]  eezlygj
-# 3                        To make her feel threatened   [14]  ed7ypvh
-# 4                             Dirty Southern Wankers    [3]  ed0bdzj
 
 def simplify_label(labels):
     return labels[0] if len(labels) > 0 else -1

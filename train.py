@@ -1,37 +1,61 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression, LinearRegression
-from sklearn.metrics import accuracy_score, classification_report, mean_squared_error, r2_score
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, accuracy_score
 from sklearn.model_selection import train_test_split
+from sentence_transformers import SentenceTransformer
 from clean import train_df, preprocess, label_map
+from responses import rule_based_override
 
-vectorizer = TfidfVectorizer(max_features=15000, ngram_range=(1,2), stop_words='english', max_df=0.85, min_df=3)
+print("Encoding text into embeddings...")
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-x = vectorizer.fit_transform(train_df["clean_text"])
+# We apply the embeddings to the whole cleaned dataset
+X = embedder.encode(train_df["text"].tolist(), show_progress_bar=True)
 y = train_df["label"]
 
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42, stratify=y)
-print(f"x_train.shape: {x_train.shape}, y_train.shape: {y_train.shape}, x_test.shape: {x_test.shape}, y_test.shape: {y_test.shape}")
+# 2. Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
 
+# 3. Train - Logistic Regression is great with embeddings
 model = LogisticRegression(max_iter=1000, class_weight="balanced")
-print("Training model with", model, "...")
-model.fit(x_train, y_train)
-y_pred = model.predict(x_test)
-print("Accuracy:", accuracy_score(y_test, y_pred))
-print("Report:", classification_report(y_test, y_pred))
+model.fit(X_train, y_train)
+
+# 4. Evaluate
+y_pred = model.predict(X_test)
+print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+print(f"Report: {classification_report(y_test, y_pred)}")
+
 
 def predict_emotion(text):
     text = preprocess(text)
-    vector = vectorizer.transform([text])
-    probs = model.predict_proba(vector)[0]
-    prediction = model.classes_[probs.argmax()]
-    confidence = probs[probs.argmax()]
-    if confidence < 0.5:
-        return "uncertain" , confidence
-    return label_map[int(prediction)], confidence
+    # Encode the single input text
+    overide = rule_based_override(text)
+    if overide:
+        return overide, 0.9
 
-print(predict_emotion("I feel amazing today"))
-print(predict_emotion("I hate everything"))
-print(predict_emotion("I don't know how I feel anymore"))
-print(predict_emotion("I'm smiling but I'm actually tired"))
-print(predict_emotion("This is fine I guess"))
+    vector = embedder.encode([text])
+    probs = model.predict_proba(vector)[0]
+
+    max_idx = probs.argmax()
+    confidence = probs[max_idx]
+    prediction_label_id = model.classes_[max_idx]
+
+    if confidence < 0.4:  # Lowered threshold slightly as embeddings distribute probability more
+        return "uncertain", confidence
+
+    return label_map[int(prediction_label_id)], confidence
+
+
+test_sentences = [
+    "I feel amazing today",
+    "I hate everything",
+    "I don't know how I feel anymore",
+    "I'm smiling but I'm actually tired",
+    "This is fine I guess"
+]
+
+for s in test_sentences:
+    emotion, conf = predict_emotion(s)
+    print(f"[{emotion}] ({conf:.2f}) -> {s}")

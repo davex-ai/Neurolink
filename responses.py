@@ -129,13 +129,25 @@ def generate_responses(emotion):
 
 def rule_based_override(text):
     text = text.lower()
-    if "amazing" in text or "great" in text or "awesome" in text:
+
+    joy_words = ["amazing", "great", "awesome", "fantastic", "good", "happy", "excited"]
+    anger_words = ["hate", "angry", "furious", "annoyed"]
+    sadness_words = ["sad", "tired", "depressed", "down"]
+    confusion_words = ["confused", "lost", "unsure"]
+    annoyance_words = ["ugh", "irritating", "annoying", "frustrating"]
+    approval_words = ["fine", "okay", "acceptable", "works"]
+
+    if any(word in text for word in joy_words):
         return "joy"
-
-    if "hate" in text or "angry" in text:
+    if any(word in text for word in anger_words):
         return "anger"
-
-    if "sad" in text or "tired" in text:
+    if any(word in text for word in sadness_words):
         return "sadness"
+    if any(word in text for word in confusion_words):
+        return "confusion"
+    if any(word in text for word in annoyance_words):
+        return "annoyance"
+    if any(word in text for word in approval_words):
+        return "approval"
 
     return None
